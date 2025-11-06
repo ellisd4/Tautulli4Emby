@@ -27,7 +27,9 @@ from plexpy import datafactory
 from plexpy import helpers
 from plexpy import logger
 from plexpy import notification_handler
-from plexpy import pmsconnect
+from plexpy import plextv
+from plexpy import embyconnect_bridge
+from plexpy import users
 
 
 ACTIVITY_SCHED = None
@@ -65,15 +67,15 @@ class ActivityHandler(object):
     def get_metadata(self, skip_cache=False):
         if self.metadata is None:
             cache_key = None if skip_cache else self.session_key
-            pms_connect = pmsconnect.PmsConnect()
-            metadata = pms_connect.get_metadata_details(rating_key=self.rating_key, cache_key=cache_key)
+            emby_connect = embyconnect_bridge.EmbyConnect()
+            metadata = emby_connect.get_metadata(rating_key=self.rating_key)
 
             if metadata:
                 self.metadata = metadata
 
     def get_live_session(self, skip_cache=False):
-        pms_connect = pmsconnect.PmsConnect()
-        session_list = pms_connect.get_current_activity(skip_cache=skip_cache)
+        emby_connect = embyconnect_bridge.EmbyConnect()
+        session_list = emby_connect.get_current_activity()
 
         if session_list:
             for session in session_list['sessions']:
@@ -541,9 +543,9 @@ class ReachabilityHandler(object):
         self.is_reachable = self.data.get('reachability', False)
 
     def remote_access_enabled(self):
-        pms_connect = pmsconnect.PmsConnect()
-        pref = pms_connect.get_server_pref(pref='PublishServerOnPlexOnlineKey')
-        return helpers.bool_true(pref)
+        # For Emby, remote access is typically enabled by default
+        # TODO: Implement proper Emby remote access check if needed
+        return True
 
     def on_extdown(self, server_response):
         plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_extdown', 'remote_access_info': server_response})
@@ -560,8 +562,8 @@ class ReachabilityHandler(object):
         if self.is_reachable and plexpy.PLEX_REMOTE_ACCESS_UP:
             return
 
-        pms_connect = pmsconnect.PmsConnect()
-        server_response = pms_connect.get_server_response()
+        emby_connect = embyconnect_bridge.EmbyConnect()
+        server_response = emby_connect.get_server_info()
 
         if not server_response:
             return
@@ -691,8 +693,8 @@ def clear_recently_added_queue(rating_key, title):
 
 
 def on_created(rating_key, **kwargs):
-    pms_connect = pmsconnect.PmsConnect()
-    metadata = pms_connect.get_metadata_details(rating_key)
+    emby_connect = embyconnect_bridge.EmbyConnect()
+    metadata = emby_connect.get_metadata(rating_key)
 
     logger.debug("Tautulli TimelineHandler :: Library item '%s' (%s) added to Plex.",
                  metadata['full_title'], str(rating_key))

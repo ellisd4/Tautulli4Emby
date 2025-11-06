@@ -23,7 +23,7 @@ from plexpy import helpers
 from plexpy import logger
 from plexpy import notification_handler
 from plexpy import plextv
-from plexpy import pmsconnect
+from plexpy import embyconnect_bridge
 from plexpy import web_socket
 
 
@@ -44,8 +44,8 @@ def check_active_sessions(ws_request=False):
         for stream in db_streams:
             activity_handler.delete_metadata_cache(stream['session_key'])
 
-        pms_connect = pmsconnect.PmsConnect()
-        session_list = pms_connect.get_current_activity()
+        emby_connect = embyconnect_bridge.EmbyConnect()
+        session_list = emby_connect.get_current_activity()
 
         logger.debug("Tautulli Monitor :: Checking for active streams.")
 

@@ -21,7 +21,10 @@ from plexpy import database
 from plexpy import helpers
 from plexpy import libraries
 from plexpy import logger
-from plexpy import pmsconnect
+from plexpy import notification_handler
+from plexpy import plextv
+from plexpy import embyconnect_bridge
+from plexpy import session
 from plexpy import users
 
 
@@ -266,13 +269,8 @@ class ActivityProcessor(object):
                 # Fetch metadata first so we can return false if it fails
                 if not is_import:
                     logger.debug("Tautulli ActivityProcessor :: Fetching metadata for item ratingKey %s" % session['rating_key'])
-                    pms_connect = pmsconnect.PmsConnect()
-                    if session['live']:
-                        metadata = pms_connect.get_metadata_details(rating_key=str(session['rating_key']),
-                                                                    cache_key=session['session_key'],
-                                                                    return_cache=True)
-                    else:
-                        metadata = pms_connect.get_metadata_details(rating_key=str(session['rating_key']))
+                    emby_connect = embyconnect_bridge.EmbyConnect()
+                    metadata = emby_connect.get_metadata(rating_key=str(session['rating_key']))
 
                     if session['live'] and not metadata:
                         metadata = session
