@@ -67,32 +67,31 @@ class EmbyConnect:
     def _get_emby_config(self):
         """Extract Emby configuration from Tautulli config."""
         try:
-            # For now, use environment variables or fallback to default config
-            # TODO: Integrate with Tautulli's CONFIG system once Emby settings are added
-            
-            # Check environment variables first (for testing)
+            # Check environment variables first (for testing/development)
             import os
-            if os.getenv('EMBY_SERVER_URL'):
-                self.server_url = os.getenv('EMBY_SERVER_URL')
+            if os.getenv('EMBY_URL') or os.getenv('EMBY_SERVER_URL'):
+                self.server_url = os.getenv('EMBY_URL') or os.getenv('EMBY_SERVER_URL', '')
                 self.api_key = os.getenv('EMBY_API_KEY', '')
                 self.timeout = int(os.getenv('EMBY_TIMEOUT', '30'))
                 self.verify_ssl = os.getenv('EMBY_VERIFY_SSL', 'true').lower() == 'true'
-                logger.info("EmbyConnect Bridge :: Using environment configuration")
+                logger.info("EmbyConnect Bridge :: Using environment configuration: %s" % self.server_url)
                 return
             
-            # Fallback to Tautulli config (will be implemented when CONFIG is updated)
-            # For now, use reasonable defaults that can be overridden
-            self.server_url = getattr(plexpy.CONFIG, 'EMBY_SERVER_URL', 'http://localhost:8096')
-            self.api_key = getattr(plexpy.CONFIG, 'EMBY_API_KEY', '')
-            self.timeout = getattr(plexpy.CONFIG, 'EMBY_TIMEOUT', 30)
-            self.verify_ssl = getattr(plexpy.CONFIG, 'EMBY_VERIFY_SSL', True)
+            # Use Tautulli CONFIG system (primary configuration method)
+            self.server_url = plexpy.CONFIG.EMBY_SERVER_URL or ''
+            self.api_key = plexpy.CONFIG.EMBY_API_KEY or ''
+            self.timeout = plexpy.CONFIG.EMBY_TIMEOUT or 30
+            self.verify_ssl = bool(plexpy.CONFIG.EMBY_VERIFY_SSL)
             
-            logger.info("EmbyConnect Bridge :: Using Tautulli configuration")
+            if self.server_url:
+                logger.info("EmbyConnect Bridge :: Using Tautulli configuration: %s" % self.server_url)
+            else:
+                logger.warning("EmbyConnect Bridge :: No Emby server configured. Please set EMBY_SERVER_URL in settings.")
             
         except Exception as e:
             logger.error("EmbyConnect Bridge :: Failed to get configuration: %s" % e)
             # Use safe defaults
-            self.server_url = 'http://localhost:8096'
+            self.server_url = ''
             self.api_key = ''
             self.timeout = 30
             self.verify_ssl = True
@@ -200,6 +199,36 @@ class EmbyConnect:
             return libraries
         except Exception as e:
             logger.error("EmbyConnect Bridge :: Error getting libraries: %s" % e)
+            return []
+    
+    def get_library_details(self):
+        """
+        Get library details in format expected by libraries.py
+        Returns list of libraries with section_id, section_name, section_type, etc.
+        """
+        try:
+            raw_libraries = self.emby_connect.get_libraries()
+            if not raw_libraries:
+                logger.warning("EmbyConnect Bridge :: No libraries found")
+                return []
+            
+            # Transform to Tautulli format
+            transformed_libraries = []
+            for lib in raw_libraries:
+                try:
+                    transformed = self.emby_connect.transform_library_data(lib)
+                    if transformed:
+                        transformed_libraries.append(transformed)
+                except Exception as e:
+                    logger.error("EmbyConnect Bridge :: Error transforming library: %s" % e)
+                    continue
+            
+            logger.debug("EmbyConnect Bridge :: Retrieved %d library details (%d transformed)" % 
+                       (len(raw_libraries), len(transformed_libraries)))
+            return transformed_libraries
+            
+        except Exception as e:
+            logger.error("EmbyConnect Bridge :: Error getting library details: %s" % e)
             return []
     
     def test_connection(self):

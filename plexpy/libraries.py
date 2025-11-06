@@ -34,9 +34,25 @@ from plexpy.plex import Plex
 def refresh_libraries():
     logger.info("Tautulli Libraries :: Requesting libraries list refresh...")
 
-    server_id = plexpy.CONFIG.PMS_IDENTIFIER
+    # Try Emby server ID first, fallback to PMS identifier
+    server_id = plexpy.CONFIG.EMBY_SERVER_ID or plexpy.CONFIG.PMS_IDENTIFIER
+    
+    # If no server ID, try to get it from the server
     if not server_id:
-        logger.error("Tautulli Libraries :: No PMS identifier, cannot refresh libraries. Verify server in settings.")
+        try:
+            emby_connect = pmsconnect.EmbyConnect()
+            server_info = emby_connect.get_server_info()
+            if server_info and server_info.get('Id'):
+                server_id = server_info['Id']
+                # Save it to config for next time
+                plexpy.CONFIG.EMBY_SERVER_ID = server_id
+                plexpy.CONFIG.write()
+                logger.info("Tautulli Libraries :: Retrieved and saved Emby server ID: %s" % server_id)
+        except Exception as e:
+            logger.error("Tautulli Libraries :: Error getting server ID: %s" % e)
+    
+    if not server_id:
+        logger.error("Tautulli Libraries :: No server identifier, cannot refresh libraries. Verify server in settings.")
         return
 
     library_sections = pmsconnect.PmsConnect().get_library_details()

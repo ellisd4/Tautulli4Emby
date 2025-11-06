@@ -69,6 +69,13 @@ _CONFIG_DEFINITIONS = {
     'PMS_UPDATE_DISTRO_BUILD': (str, 'PMS', ''),
     'PMS_UPDATE_CHECK_INTERVAL': (int, 'Advanced', 24),
     'PMS_WEB_URL': (str, 'PMS', 'https://app.plex.tv/desktop'),
+    # Emby Server Configuration
+    'EMBY_SERVER_URL': (str, 'Emby', ''),
+    'EMBY_API_KEY': (str, 'Emby', ''),
+    'EMBY_SERVER_NAME': (str, 'Emby', ''),
+    'EMBY_SERVER_ID': (str, 'Emby', ''),
+    'EMBY_TIMEOUT': (int, 'Emby', 30),
+    'EMBY_VERIFY_SSL': (int, 'Emby', 1),
     'TIME_FORMAT': (str, 'General', 'HH:mm'),
     'ANON_REDIRECT': (str, 'General', ''),
     'ANON_REDIRECT_DYNAMIC': (int, 'General', 1),
