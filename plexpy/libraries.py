@@ -25,7 +25,7 @@ from plexpy import datatables
 from plexpy import helpers
 from plexpy import logger
 from plexpy import plextv
-from plexpy import pmsconnect
+from plexpy import embyconnect_bridge as pmsconnect  # Use EmbyConnect bridge with pmsconnect alias for compatibility
 from plexpy import session
 from plexpy import users
 from plexpy.plex import Plex

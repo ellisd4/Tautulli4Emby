@@ -65,7 +65,7 @@ from plexpy import notifiers
 from plexpy import plextv
 from plexpy import plexivity_import
 from plexpy import plexwatch_import
-from plexpy import pmsconnect
+from plexpy import embyconnect_bridge as pmsconnect  # Use EmbyConnect bridge with pmsconnect alias for compatibility
 from plexpy import users
 from plexpy import versioncheck
 from plexpy import web_socket
