@@ -1,4 +1,3 @@
-
 # Compiled source #
 ###################
 __pycache__
@@ -101,3 +100,10 @@ _ReSharper*/
 .snapcraft
 *_source.tar.bz2
 snap/.snapcraft
+
+# Environment files #
+#####################
+.env
+.env.local
+.env.development
+.env.production
